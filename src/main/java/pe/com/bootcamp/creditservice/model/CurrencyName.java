@@ -1,5 +1,8 @@
 package pe.com.bootcamp.creditservice.model;
 
+import lombok.Getter;
+
+@Getter
 public enum CurrencyName {
 
     SOLES("01"),
@@ -9,10 +12,6 @@ public enum CurrencyName {
 
     CurrencyName(String code) {
         this.code = code;
-    }
-
-    public String getCode() {
-        return code;
     }
 
     public static String getNameByCode(String code) {

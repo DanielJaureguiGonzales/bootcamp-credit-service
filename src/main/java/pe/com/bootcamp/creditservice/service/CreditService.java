@@ -11,4 +11,7 @@ public interface CreditService {
     Mono<CreditConsumptionResponse> registerConsumption(CreditConsumptionRequest consumptionRequest);
     Mono<CreditPaymentResponse> payCredit(CreditPaymentRequest creditPaymentRequest);
     Mono<CreditBalancesResponse> getCreditBalances(BalanceRequest request);
+    Mono<CreditMovementsResponse> getCreditMovements(
+            CreditMovementsRequest request
+    );
 }

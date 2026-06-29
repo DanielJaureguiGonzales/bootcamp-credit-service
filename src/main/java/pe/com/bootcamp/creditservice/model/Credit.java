@@ -22,6 +22,7 @@ public class Credit {
     private BigDecimal usedAmount;
     private String currencyType;
     private String currencyName;
+    private String cardType;
     private BigDecimal exchangeRate;
     private BigDecimal annualInterestRate;
     private Boolean status;

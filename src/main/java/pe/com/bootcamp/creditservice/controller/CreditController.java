@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.com.bootcamp.creditservice.dto.*;
 import pe.com.bootcamp.creditservice.service.CreditService;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -61,6 +60,14 @@ public class CreditController {
             @RequestBody BalanceRequest request
     ) {
         return creditService.getCreditBalances(request)
+                .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/movements")
+    public Mono<ResponseEntity<CreditMovementsResponse>> getCreditMovements(
+            @RequestBody @Valid CreditMovementsRequest request
+    ) {
+        return creditService.getCreditMovements(request)
                 .map(ResponseEntity::ok);
     }
 
