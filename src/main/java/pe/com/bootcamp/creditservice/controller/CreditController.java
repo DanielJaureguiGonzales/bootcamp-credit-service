@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/credit")
+@RequestMapping("api/credits")
 @RequiredArgsConstructor
 public class CreditController {
 
@@ -26,10 +26,9 @@ public class CreditController {
 
     }
 
-    @GetMapping("/customer/{customerId}")
-    public Mono<ResponseEntity<List<CreditResponse>>> findAllCreditsByCustomerId(@PathVariable
-                                                                                     String customerId){
-        return creditService.getAllCreditsByCustomerId(customerId)
+    @GetMapping("/document")
+    public Mono<ResponseEntity<List<CreditResponse>>> findAllCreditsByCustomerId(@RequestParam("document-number") String documentNumber,@RequestParam("document-type") String documentType){
+        return creditService.getCreditsByCustomer(documentNumber,documentType)
                 .collectList()
                 .map(ResponseEntity::ok);
     }
@@ -55,7 +54,7 @@ public class CreditController {
 
     }
 
-    @PostMapping("/balances")
+    @GetMapping("/balances")
     public Mono<ResponseEntity<CreditBalancesResponse>> getCreditBalances(
             @RequestBody BalanceRequest request
     ) {
@@ -63,12 +62,20 @@ public class CreditController {
                 .map(ResponseEntity::ok);
     }
 
-    @PostMapping("/movements")
+    @GetMapping("/movements")
     public Mono<ResponseEntity<CreditMovementsResponse>> getCreditMovements(
             @RequestBody @Valid CreditMovementsRequest request
     ) {
         return creditService.getCreditMovements(request)
                 .map(ResponseEntity::ok);
+    }
+
+    @DeleteMapping
+    public Mono<ResponseEntity<Void>> deleteCredit(
+            @RequestBody @Valid CreditDeleteRequest request
+    ) {
+        return creditService.deleteCredit(request)
+                .then(Mono.fromSupplier(() -> ResponseEntity.noContent().build()));
     }
 
 }

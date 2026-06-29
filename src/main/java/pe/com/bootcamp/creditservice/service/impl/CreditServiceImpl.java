@@ -38,20 +38,42 @@ public class CreditServiceImpl implements CreditService {
     private final CustomerResponseClient client;
     private final CreditNumberGenerator creditNumberGenerator;
 
+
     @Override
-    public Flux<CreditResponse> getAllCreditsByCustomerId(String customerId) {
-
-        if (customerId == null || customerId.isBlank()) {
-            return Flux.error(new RuntimeException("Customer id is required"));
-        }
-
-        return creditRepository.findByCustomerIdAndStatus(customerId, true)
+    public Flux<CreditResponse> getCreditsByCustomer(String documentNumber, String documentType) {
+        return validateCreditCustomerRequest(documentNumber, documentType)
+                .then(findCustomer(
+                        documentNumber,
+                        documentType
+                ))
+                .flatMapMany(customerResponse ->
+                        creditRepository.findByCustomerIdAndStatus(
+                                customerResponse.id(),
+                                true
+                        )
+                )
                 .switchIfEmpty(Flux.error(new ResourceNotFoundException(
                         "Credit",
-                        "customerId",
-                        customerId
+                        "documentNumber",
+                        documentNumber
                 )))
                 .map(this::toCreditResponse);
+    }
+
+    private Mono<Void> validateCreditCustomerRequest(
+            String documentNumber, String documentType
+    ) {
+
+        Map<String, String> errors = new HashMap<>();
+
+
+        validateDocument(
+                errors,
+                documentType,
+                documentNumber
+        );
+
+        return validateErrors(errors);
     }
 
     @Override
@@ -161,6 +183,63 @@ public class CreditServiceImpl implements CreditService {
                                         )
                                 )
                 );
+    }
+
+    @Override
+    public Mono<Void> deleteCredit(CreditDeleteRequest request) {
+        return validateDeleteCreditRequest(request)
+                .then(findCustomer(
+                        request.documentNumber(),
+                        request.documentType()
+                ))
+                .flatMap(customerResponse ->
+                        findActiveCreditByNumber(request.creditNumber())
+                                .flatMap(credit ->
+                                        validateCreditBelongsToCustomer(
+                                                credit,
+                                                customerResponse.id()
+                                        ).thenReturn(credit)
+                                )
+                )
+                .flatMap(this::validateCreditHasNoPendingDebt)
+                .flatMap(this::disableCredit);
+    }
+
+    private Mono<Credit> validateCreditHasNoPendingDebt(Credit credit) {
+
+        BigDecimal usedAmount = getOrZero(credit.getUsedAmount());
+
+        if (usedAmount.compareTo(BigDecimal.ZERO) > 0) {
+            return Mono.error(new RuntimeException(
+                    "Credit card cannot be deleted because it has pending debt"
+            ));
+        }
+
+        return Mono.just(credit);
+    }
+
+    private Mono<Void> disableCredit(Credit credit) {
+
+        credit.setStatus(false);
+
+        return creditRepository.save(credit)
+                .then();
+    }
+
+    private Mono<Void> validateDeleteCreditRequest(
+            CreditDeleteRequest request
+    ) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        validateDocument(
+                errors,
+                request.documentType(),
+                request.documentNumber()
+        );
+
+
+        return validateErrors(errors);
     }
 
     private Mono<CreditMovementsResponse> buildCreditMovementsResponse(

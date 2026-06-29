@@ -6,7 +6,10 @@ import reactor.core.publisher.Mono;
 
 public interface CreditService {
 
-    Flux<CreditResponse> getAllCreditsByCustomerId(String customerId);
+//    Flux<CreditResponse> getAllCreditsByCustomerId(String customerId);
+    Flux<CreditResponse> getCreditsByCustomer(
+            String documentNumber, String documentType
+    );
     Mono<CreditResponse> createCreditRequest(CreditRequest creditRequest);
     Mono<CreditConsumptionResponse> registerConsumption(CreditConsumptionRequest consumptionRequest);
     Mono<CreditPaymentResponse> payCredit(CreditPaymentRequest creditPaymentRequest);
@@ -14,4 +17,5 @@ public interface CreditService {
     Mono<CreditMovementsResponse> getCreditMovements(
             CreditMovementsRequest request
     );
+    Mono<Void> deleteCredit(CreditDeleteRequest request);
 }
