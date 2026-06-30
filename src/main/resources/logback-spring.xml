@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Nombre del microservicio -->
+    <property name="APP_NAME" value="credit-service"/>
+
+    <!-- Ruta para logs.
+         En Docker: /app/logs
+         En local podrías usar: logs -->
+    <property name="LOG_PATH" value="/app/logs"/>
+
+    <!-- Patrón de salida del log -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${APP_NAME}] [%thread] %logger{36} - %msg%n"/>
+
+    <!-- Logs por consola -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logs en archivo con rotación diaria -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <!-- Archivo activo del día actual -->
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+
+        <!-- Al cambiar de día, mueve el log anterior a history -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+            <!-- Archivo histórico generado por día -->
+            <fileNamePattern>${LOG_PATH}/history/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+
+            <!-- Conserva logs de los últimos 30 días -->
+            <maxHistory>30</maxHistory>
+
+            <!-- Límite total de almacenamiento -->
+            <totalSizeCap>1GB</totalSizeCap>
+
+            <!-- Limpia logs antiguos al iniciar -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+
+        </rollingPolicy>
+    </appender>
+
+    <!-- Nivel de logs de tu aplicación -->
+    <logger name="pe.com.bootcamp" level="INFO"/>
+
+    <!-- Reducir ruido de librerías externas -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.mongodb.driver" level="WARN"/>
+    <logger name="reactor.netty" level="WARN"/>
+
+    <!-- Configuración global -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
